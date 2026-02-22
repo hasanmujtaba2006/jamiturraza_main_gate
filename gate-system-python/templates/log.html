@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Entry/Exit Log{% endblock %}
+{% block page_title %}Entry / Exit Log{% endblock %}
+{% block page_sub %}RECORDS · AUDIT TRAIL{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+  <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;width:100%;">
+    <input type="text" name="search" class="form-input" style="max-width:220px;" placeholder="🔍 Name or ID..." value="{{ search_f }}">
+    <select name="type" class="form-select" style="width:130px;">
+      <option value="">All Types</option>
+      <option value="entry"   {{ 'selected' if type_f=='entry' }}>Entry</option>
+      <option value="exit"    {{ 'selected' if type_f=='exit'  }}>Exit</option>
+      <option value="blocked" {{ 'selected' if type_f=='blocked' }}>Blocked</option>
+    </select>
+    <select name="gate" class="form-select" style="width:140px;">
+      <option value="">All Gates</option>
+      <option {{ 'selected' if gate_f=='Main Gate' }}>Main Gate</option>
+      <option {{ 'selected' if gate_f=='East Gate' }}>East Gate</option>
+      <option {{ 'selected' if gate_f=='West Gate' }}>West Gate</option>
+    </select>
+    <input type="date" name="date" class="form-input" style="width:160px;" value="{{ date_f }}">
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="{{ url_for('log') }}" class="btn btn-ghost">Reset</a>
+    <div style="margin-left:auto;">
+      <a href="{{ url_for('log', export='1', type=type_f, gate=gate_f, date=date_f, search=search_f) }}" class="btn btn-ghost btn-sm">⬇️ Export CSV</a>
+    </div>
+  </form>
+</div>
+
+<div class="panel">
+  <div class="panel-hdr">
+    <span class="panel-title">Log for {{ date_f }}</span>
+    <span class="pbadge info-b">{{ logs|length }} RECORDS</span>
+  </div>
+  {% if logs %}
+  <div style="overflow-x:auto;">
+  <table class="tbl">
+    <thead><tr><th>#</th><th>Name / ID</th><th>Role</th><th>Type</th><th>Gate</th><th>Guard</th><th>Method</th><th>Time</th></tr></thead>
+    <tbody>
+    {% for r in logs %}
+    <tr>
+      <td class="td-m">{{ '%03d'|format(loop.index) }}</td>
+      <td><div class="td-n">{{ r.person.full_name }}</div><div class="td-m">{{ r.person.user_id }} · {{ r.person.department }}</div></td>
+      <td><span class="tag t-{{ r.person.role }}">{{ r.person.role_label }}</span></td>
+      <td><span class="tag t-{{ r.log_type }}">{{ r.log_type|title }}</span></td>
+      <td class="td-m">{{ r.gate }}</td>
+      <td><div class="td-n" style="font-size:12px;">{{ r.guard.full_name }}</div><div class="td-m">{{ r.guard.user_id }}</div></td>
+      <td class="td-m">{{ r.method|replace('_',' ')|title }}</td>
+      <td class="td-m">{{ r.logged_at.strftime('%I:%M:%S %p') }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div style="padding:40px;text-align:center;color:var(--muted);">No records found for selected filters.</div>
+  {% endif %}
+</div>
+{% endblock %}
