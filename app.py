@@ -596,9 +596,11 @@ def inject_globals():
         unread_alerts=unread_alert_count() if current_user.is_authenticated else 0
     )
 
+# 👇 ADD THESE TWO LINES HERE 👇
+with app.app_context():
+    seed_database()
 
 # ── Run ────────────────────────────────────────────────────
 if __name__ == '__main__':
-    with app.app_context():
-        seed_database()
+    # We removed the db seeding from inside here
     app.run(debug=False, host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
