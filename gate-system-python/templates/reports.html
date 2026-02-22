@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block page_title %}Reports{% endblock %}
+{% block page_sub %}ANALYTICS · EXPORT{% endblock %}
+
+{% block content %}
+<div class="stat-grid">
+  <div class="stat-card sc-g"><div class="sc-label">Entries Today</div><div class="sc-val">{{ stats.today_e }}</div></div>
+  <div class="stat-card sc-b"><div class="sc-label">Total Users</div><div class="sc-val">{{ stats.total_u }}</div></div>
+  <div class="stat-card sc-r"><div class="sc-label">Blocked Attempts</div><div class="sc-val">{{ stats.blocked }}</div></div>
+  <div class="stat-card sc-a"><div class="sc-label">Audit Events</div><div class="sc-val">{{ stats.audit_ev }}</div></div>
+</div>
+
+{% set report_list = [
+  ('#01','Daily Entry/Exit Report','Complete entry and exit records for any selected date.','📋', 'log'),
+  ('#02','Student Attendance','All student entry records.','🎓', 'log'),
+  ('#03','Staff Attendance','Entry records for all staff members.','👔', 'log'),
+  ('#04','Blocked Attempts Report','All blocked/denied entry attempts.','🚫', 'log'),
+  ('#05','Active Users Report','All currently active users.','✅', 'users'),
+  ('#06','Inactive Users Report','All deactivated accounts with reasons.','❌', 'users'),
+  ('#23','Activation/Deactivation Log','Status change history with timestamps.','🔄', 'audit'),
+  ('#24','Inactive Entry Attempts','Attempts by deactivated accounts.','🚫', 'log'),
+  ('#25','Guard Login Activity','Guard login/logout audit trail.','🔐', 'audit'),
+  ('#26','Failed Login Attempts','All failed authentication events.','⚠️', 'audit'),
+  ('#27','Full Audit Log','Complete record — who did what & when.','🔍', 'audit'),
+] %}
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+{% for num, name, desc, icon, endpoint in report_list %}
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;transition:all .2s;position:relative;overflow:hidden;"
+     onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-3px)'"
+     onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)'">
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:1px;">REPORT {{ num }}</div>
+  <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px;">{{ icon }} {{ name }}</div>
+  <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:16px;">{{ desc }}</div>
+  <div style="display:flex;gap:8px;">
+    <a href="{{ url_for(endpoint) }}" class="btn btn-ghost btn-sm">View</a>
+    <a href="{{ url_for('log', export='1') }}" class="btn btn-ghost btn-sm">⬇️ CSV</a>
+  </div>
+  <div style="position:absolute;right:12px;bottom:12px;font-size:28px;opacity:.08;">{{ icon }}</div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}User Management{% endblock %}
+{% block page_title %}User Management{% endblock %}
+{% block page_sub %}ACTIVATION · DEACTIVATION CONTROL{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+  <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;">
+    <input type="text" name="search" class="form-input" style="max-width:220px;" placeholder="🔍 Search..." value="{{ search_f }}">
+    <select name="role" class="form-select" style="width:130px;">
+      <option value="">All Roles</option>
+      <option value="student"  {{ 'selected' if role_f=='student'  }}>Students</option>
+      <option value="staff"    {{ 'selected' if role_f=='staff'    }}>Staff</option>
+      <option value="guard"    {{ 'selected' if role_f=='guard'    }}>Guards</option>
+      <option value="admin"    {{ 'selected' if role_f=='admin'    }}>Admins</option>
+    </select>
+    <select name="status" class="form-select" style="width:130px;">
+      <option value="">All Status</option>
+      <option value="active"   {{ 'selected' if status_f=='active'   }}>Active</option>
+      <option value="inactive" {{ 'selected' if status_f=='inactive' }}>Inactive</option>
+    </select>
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="{{ url_for('users') }}" class="btn btn-ghost">Reset</a>
+  </form>
+  <button class="btn btn-primary" onclick="document.getElementById('modal-add').classList.add('open')">➕ Add User</button>
+</div>
+
+<div class="panel">
+  <div class="panel-hdr">
+    <span class="panel-title">Users</span>
+    <span class="pbadge info-b">{{ users|length }} RECORDS</span>
+  </div>
+  <div style="overflow-x:auto;">
+  <table class="tbl">
+    <thead><tr><th>Name / ID</th><th>Role</th><th>Department</th><th>Contact</th><th>Status</th><th>Reason</th><th>Action</th></tr></thead>
+    <tbody>
+    {% for u in users %}
+    <tr style="{{ 'opacity:.65' if u.status=='inactive' else '' }}">
+      <td><div class="td-n">{{ u.full_name }}</div><div class="td-m">{{ u.user_id }}</div></td>
+      <td><span class="tag t-{{ u.role }}">{{ u.role_label }}</span></td>
+      <td class="td-m">{{ u.department }}</td>
+      <td class="td-m">{{ u.email }}<br>{{ u.phone }}</td>
+      <td><span class="tag t-{{ u.status }}">{{ u.status|title }}</span></td>
+      <td class="td-m" style="color:var(--red)">{{ u.deact_reason or '—' }}</td>
+      <td>
+        <form method="POST" style="display:flex;align-items:center;gap:8px;" onsubmit="return confirm('{{ ('Deactivate ' if u.status=='active' else 'Activate ') + u.full_name + '?') }}">
+          <input type="hidden" name="action" value="toggle">
+          <input type="hidden" name="toggle_id" value="{{ u.id }}">
+          <input type="hidden" name="new_status" value="{{ 'inactive' if u.status=='active' else 'active' }}">
+          {% if u.status == 'active' %}
+          <input type="text" name="reason" class="form-input" placeholder="Reason to deactivate" style="width:180px;font-size:11px;padding:6px 10px;" required>
+          {% else %}
+          <input type="hidden" name="reason" value="">
+          {% endif %}
+          <button type="submit" class="btn btn-sm {{ 'btn-danger' if u.status=='active' else 'btn-success' }}">
+            {{ '🔒 Deactivate' if u.status=='active' else '✅ Activate' }}
+          </button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title">➕ Add New User</span>
+      <button class="modal-close" onclick="document.getElementById('modal-add').classList.remove('open')">✕</button>
+    </div>
+    <form method="POST">
+      <input type="hidden" name="action" value="add">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div><label class="form-label">User ID</label><input type="text" name="user_id" class="form-input" placeholder="STU-2024-001" required></div>
+        <div><label class="form-label">Full Name</label><input type="text" name="full_name" class="form-input" placeholder="Full Name" required></div>
+        <div><label class="form-label">Role</label>
+          <select name="role" class="form-select">
+            <option value="student">Student</option><option value="staff">Staff</option>
+            <option value="guard">Guard</option><option value="admin">Admin</option>
+            <option value="supervisor">Supervisor</option><option value="warden">Warden</option>
+          </select>
+        </div>
+        <div><label class="form-label">Department</label><input type="text" name="department" class="form-input" placeholder="Department"></div>
+        <div><label class="form-label">Email</label><input type="email" name="email" class="form-input" placeholder="email@jamia.edu"></div>
+        <div><label class="form-label">Phone</label><input type="text" name="phone" class="form-input" placeholder="03XX-XXXXXXX"></div>
+        <div style="grid-column:1/-1"><label class="form-label">Password</label><input type="password" name="password" class="form-input" placeholder="Min 8 characters" required></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button type="submit" class="btn btn-success" style="flex:1;">✅ Create User</button>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('modal-add').classList.remove('open')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Jamia Gate System{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_sub %}OVERVIEW · LIVE STATUS{% endblock %}
+
+{% block content %}
+<div class="stat-grid">
+  <div class="stat-card sc-g"><div class="sc-label">Today's Entries</div><div class="sc-val">{{ entries }}</div><div class="sc-meta">Successful entries today</div><div class="sc-icon">🟢</div></div>
+  <div class="stat-card sc-b"><div class="sc-label">Currently Inside</div><div class="sc-val">{{ inside }}</div><div class="sc-meta">Estimated on campus</div><div class="sc-icon">🏛️</div></div>
+  <div class="stat-card sc-r"><div class="sc-label">Blocked Today</div><div class="sc-val">{{ blocked }}</div><div class="sc-meta">Inactive / unauthorized</div><div class="sc-icon">🚫</div></div>
+  <div class="stat-card sc-a"><div class="sc-label">Active Alerts</div><div class="sc-val">{{ alerts }}</div><div class="sc-meta">Unread notifications</div><div class="sc-icon">⚠️</div></div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:20px;margin-bottom:20px;">
+  <!-- Recent Log -->
+  <div class="panel">
+    <div class="panel-hdr">
+      <span class="panel-title">Recent Gate Activity</span>
+      <span class="pbadge live">● LIVE</span>
+      <div class="panel-acts"><a href="{{ url_for('log') }}" class="btn btn-ghost btn-sm">View All</a></div>
+    </div>
+    {% if recent_logs %}
+    <div style="overflow-x:auto;">
+    <table class="tbl">
+      <thead><tr><th>Name / ID</th><th>Type</th><th>Gate</th><th>Guard</th><th>Time</th></tr></thead>
+      <tbody>
+      {% for r in recent_logs %}
+      <tr>
+        <td><div class="td-n">{{ r.person.full_name }}</div><div class="td-m">{{ r.person.user_id }}</div></td>
+        <td><span class="tag t-{{ r.log_type }}">{{ r.log_type|title }}</span></td>
+        <td class="td-m">{{ r.gate }}</td>
+        <td class="td-m">{{ r.guard.user_id }}</td>
+        <td class="td-m">{{ r.logged_at.strftime('%I:%M %p') }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;">No activity yet today.</div>
+    {% endif %}
+  </div>
+
+  <!-- Alerts -->
+  <div class="panel">
+    <div class="panel-hdr">
+      <span class="panel-title">Active Alerts</span>
+      {% if alerts > 0 %}<span class="pbadge" style="background:var(--red-dim);color:var(--red);border:1px solid rgba(255,61,87,.3);">{{ alerts }} NEW</span>{% endif %}
+    </div>
+    {% for a in recent_alerts %}
+    <div style="display:flex;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border);">
+      <div style="width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;
+        background:{{ 'var(--red)' if a.type=='critical' else ('var(--amber)' if a.type=='warning' else 'var(--accent)') }};
+        box-shadow:0 0 6px {{ 'var(--red)' if a.type=='critical' else ('var(--amber)' if a.type=='warning' else 'var(--accent)') }};"></div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:600;margin-bottom:3px;">{{ a.title }}</div>
+        <div style="font-size:11px;color:var(--muted);">{{ (a.description or '')[:80] }}{% if a.description and a.description|length > 80 %}...{% endif %}</div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap;">{{ a.created_at.strftime('%I:%M %p') }}</div>
+    </div>
+    {% else %}
+    <div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;">No alerts.</div>
+    {% endfor %}
+    <div style="padding:12px 18px;">
+      <a href="{{ url_for('alerts') }}" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;">View All Alerts</a>
+    </div>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card sc-b"><div class="sc-label">Active Students</div><div class="sc-val">{{ students }}</div><div class="sc-meta">Enrolled & active</div></div>
+  <div class="stat-card sc-g"><div class="sc-label">Active Staff</div><div class="sc-val">{{ staff }}</div><div class="sc-meta">Faculty & employees</div></div>
+  <div class="stat-card sc-a"><div class="sc-label">Today's Exits</div><div class="sc-val">{{ exits }}</div><div class="sc-meta">Left campus today</div></div>
+  <div class="stat-card sc-r"><div class="sc-label">Inactive Accounts</div><div class="sc-val">{{ inactive }}</div><div class="sc-meta">Deactivated users</div></div>
+</div>
+{% endblock %}

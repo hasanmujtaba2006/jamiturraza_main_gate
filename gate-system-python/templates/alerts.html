@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Alerts{% endblock %}
+{% block page_title %}Security Alerts{% endblock %}
+{% block page_sub %}REAL-TIME NOTIFICATIONS{% endblock %}
+
+{% block content %}
+<div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+  <div class="stat-card sc-r"><div class="sc-label">Critical</div><div class="sc-val">{{ counts.critical }}</div><div class="sc-meta">Immediate action needed</div></div>
+  <div class="stat-card sc-a"><div class="sc-label">Warnings</div><div class="sc-val">{{ counts.warning }}</div><div class="sc-meta">Review required</div></div>
+  <div class="stat-card sc-b"><div class="sc-label">Info</div><div class="sc-val">{{ counts.info }}</div><div class="sc-meta">Informational</div></div>
+</div>
+
+<div class="toolbar">
+  <form method="GET" style="display:flex;gap:10px;">
+    <select name="type" class="form-select" style="width:140px;">
+      <option value="">All Types</option>
+      <option value="critical" {{ 'selected' if type_f=='critical' }}>Critical</option>
+      <option value="warning"  {{ 'selected' if type_f=='warning'  }}>Warning</option>
+      <option value="info"     {{ 'selected' if type_f=='info'     }}>Info</option>
+    </select>
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="{{ url_for('alerts') }}" class="btn btn-ghost">Reset</a>
+  </form>
+  <form method="POST" style="margin-left:auto;">
+    <button type="submit" name="action" value="mark_all" class="btn btn-ghost btn-sm">✓ Mark All Read</button>
+  </form>
+</div>
+
+<div class="panel">
+  <div class="panel-hdr">
+    <span class="panel-title">All Alerts</span>
+    <span class="pbadge info-b">{{ alerts|length }} TOTAL</span>
+  </div>
+  {% if alerts %}
+  {% for a in alerts %}
+  <div style="display:flex;align-items:flex-start;gap:14px;padding:15px 20px;border-bottom:1px solid var(--border);{{ 'background:rgba(255,179,0,.02)' if not a.is_read else '' }}">
+    <div style="width:9px;height:9px;border-radius:50%;margin-top:5px;flex-shrink:0;
+      background:{{ 'var(--red)' if a.type=='critical' else ('var(--amber)' if a.type=='warning' else 'var(--accent)') }};
+      box-shadow:0 0 6px {{ 'var(--red)' if a.type=='critical' else ('var(--amber)' if a.type=='warning' else 'var(--accent)') }};
+      {{ 'opacity:.4' if a.is_read else '' }}"></div>
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">{{ a.title }}
+        {% if not a.is_read %}<span style="font-family:'IBM Plex Mono',monospace;font-size:9px;background:var(--amber-dim);color:var(--amber);padding:2px 7px;border-radius:4px;margin-left:6px;">NEW</span>{% endif %}
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;">{{ a.description }}</div>
+      {% if a.rel_user %}
+      <div style="margin-top:5px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);">
+        Related: {{ a.rel_user.full_name }} ({{ a.rel_user.user_id }})
+      </div>
+      {% endif %}
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);">{{ a.created_at.strftime('%d %b %H:%M') }}</div>
+      {% if not a.is_read %}
+      <form method="POST"><input type="hidden" name="action" value="mark_one"><input type="hidden" name="alert_id" value="{{ a.id }}">
+        <button type="submit" class="btn btn-ghost btn-sm">✓ Read</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div style="padding:40px;text-align:center;color:var(--muted);">No alerts found.</div>
+  {% endif %}
+</div>
+{% endblock %}
