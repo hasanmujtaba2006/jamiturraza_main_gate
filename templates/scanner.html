@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Gate Scanner{% endblock %}
+{% block page_title %}Gate Scanner{% endblock %}
+{% block page_sub %}AUTHENTICATION · ENTRY/EXIT{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 300px;gap:20px;">
+<div>
+  <!-- QR/ID Scan -->
+  <div class="panel">
+    <div class="panel-hdr">
+      <span class="panel-title">Scan / Enter ID</span>
+      <span class="pbadge live">● Guard: {{ current_user.user_id }}</span>
+    </div>
+    <div style="padding:20px;">
+      <form method="POST">
+        <div style="display:flex;gap:10px;margin-bottom:10px;">
+          <input type="text" name="scan_id" class="form-input" placeholder="Scan QR or type ID — e.g. STU-2021-001"
+                 value="{{ scan_id_val }}" autofocus style="font-family:'IBM Plex Mono',monospace;letter-spacing:1px;">
+          <select name="gate" class="form-select" style="width:160px;">
+            <option>Main Gate</option><option>East Gate</option><option>West Gate</option>
+          </select>
+          <button type="submit" name="action" value="check" class="btn btn-primary">📡 Check</button>
+        </div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:12px;">
+          Try: STU-2021-001 ✓ &nbsp;|&nbsp; STU-2019-447 ✗ (inactive) &nbsp;|&nbsp; STF-2015-003 ✗ (retired)
+        </div>
+
+        {% if scanned_user or scan_result == 'not_found' %}
+        {% set allowed = scan_result == 'allowed' %}
+        <div style="border-radius:10px;padding:16px;margin-top:4px;
+          border:1px solid {{ 'rgba(0,230,118,.4)' if allowed else 'rgba(255,61,87,.4)' }};
+          background:{{ 'var(--green-dim)' if allowed else 'var(--red-dim)' }};">
+
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+            <div style="width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+              font-family:'Syne',sans-serif;font-size:16px;font-weight:800;
+              background:{{ 'var(--green-dim)' if allowed else 'var(--red-dim)' }};
+              border:1px solid {{ 'rgba(0,230,118,.4)' if allowed else 'rgba(255,61,87,.4)' }};
+              color:{{ 'var(--green)' if allowed else 'var(--red)' }};">
+              {{ scanned_user.initials if scanned_user else '?' }}
+            </div>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">
+                {{ scanned_user.full_name if scanned_user else 'Unknown User' }}
+              </div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);">{{ scan_id_val }}</div>
+            </div>
+            <div style="margin-left:auto;">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 12px;border-radius:20px;font-weight:600;
+                background:{{ 'var(--green-dim)' if allowed else 'var(--red-dim)' }};
+                color:{{ 'var(--green)' if allowed else 'var(--red)' }};
+                border:1px solid {{ 'rgba(0,230,118,.4)' if allowed else 'rgba(255,61,87,.4)' }};">
+                {{ '✓ ENTRY ALLOWED' if allowed else ('✗ NOT FOUND' if scan_result=='not_found' else '✗ BLOCKED') }}
+              </span>
+            </div>
+          </div>
+
+          {% if scanned_user %}
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+            <div><div class="form-label">TYPE</div><span class="tag t-{{ scanned_user.role }}">{{ scanned_user.role_label }}</span></div>
+            <div><div class="form-label">DEPARTMENT</div><span style="font-size:12px;">{{ scanned_user.department }}</span></div>
+            <div><div class="form-label">STATUS</div><span class="tag t-{{ scanned_user.status }}">{{ scanned_user.status|title }}</span></div>
+            {% if scanned_user.deact_reason %}
+            <div style="grid-column:1/-1"><div class="form-label">BLOCK REASON</div>
+              <span style="color:var(--red);font-size:12px;">{{ scanned_user.deact_reason }}</span></div>
+            {% endif %}
+          </div>
+          {% if allowed %}
+          <div style="display:flex;gap:10px;">
+            <button type="submit" name="action" value="entry" class="btn btn-success btn-sm">✅ Confirm Entry</button>
+            <button type="submit" name="action" value="exit"  class="btn btn-ghost btn-sm">🚪 Record Exit</button>
+          </div>
+          {% else %}
+          <div style="font-size:12px;color:var(--red);">⛔ Entry denied. Alert sent to Admin automatically.</div>
+          {% endif %}
+          {% else %}
+          <div style="font-size:12px;color:var(--red);">⚠️ ID not found in system. Alert has been logged.</div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <!-- Manual Entry -->
+  <div class="panel">
+    <div class="panel-hdr">
+      <span class="panel-title">Manual Entry / Exit</span>
+      <span class="pbadge warn-b">REQUIRES JUSTIFICATION</span>
+    </div>
+    <div style="padding:20px;">
+      <form method="POST">
+        <input type="hidden" name="action" value="manual">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+          <div><label class="form-label">Person ID</label><input type="text" name="manual_id" class="form-input" placeholder="STU-2021-001"></div>
+          <div><label class="form-label">Type</label><select name="manual_type" class="form-select"><option value="entry">Entry</option><option value="exit">Exit</option></select></div>
+          <div><label class="form-label">Gate</label><select name="manual_gate" class="form-select"><option>Main Gate</option><option>East Gate</option><option>West Gate</option></select></div>
+          <div><label class="form-label">Notes</label><input type="text" name="manual_notes" class="form-input" placeholder="Optional reason"></div>
+        </div>
+        <button type="submit" class="btn btn-success">✅ Record Manual Entry</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div>
+  <div class="panel" style="margin-bottom:16px;">
+    <div class="panel-hdr"><span class="panel-title">Entry Flow</span></div>
+    <div style="padding:16px;">
+      {% set steps = [('green','1','QR / ID Scanned','Guard scans card at gate terminal'),('amber','2','System Verification','Checks account existence & active status'),('green','3','Active → Allowed','Entry logged with Guard ID, Gate & Time'),('red','4','Inactive → Blocked','Alert sent, event logged, guard notified')] %}
+      {% for color, num, title, desc in steps %}
+      <div style="display:flex;gap:14px;padding-bottom:{{ '18' if not loop.last else '0' }}px;position:relative;">
+        {% if not loop.last %}<div style="position:absolute;left:11px;top:26px;bottom:0;width:1px;background:var(--border);"></div>{% endif %}
+        <div style="width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;z-index:1;
+          background:{{ 'var(--green-dim)' if color=='green' else ('var(--amber-dim)' if color=='amber' else 'var(--red-dim)') }};
+          border:2px solid {{ 'var(--green)' if color=='green' else ('var(--amber)' if color=='amber' else 'var(--red)') }};
+          color:{{ 'var(--green)' if color=='green' else ('var(--amber)' if color=='amber' else 'var(--red)') }};">{{ num }}</div>
+        <div><div style="font-size:12px;font-weight:600;margin-bottom:2px;">{{ title }}</div><div style="font-size:11px;color:var(--muted);">{{ desc }}</div></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-hdr"><span class="panel-title">Today's Summary</span></div>
+    <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      {% for val, label, color in [(today_e,'ENTRIES','var(--green)'),(today_x,'EXITS','var(--accent)'),(today_b,'BLOCKED','var(--red)'),(inside,'ON CAMPUS','var(--amber)')] %}
+      <div style="text-align:center;padding:14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
+        <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:{{ color }};">{{ val }}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;">{{ label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

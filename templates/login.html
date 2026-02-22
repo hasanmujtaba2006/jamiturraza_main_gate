@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Login — Jamia Gate System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0c0f;--surface:#111418;--surface2:#181c22;--border:#252c36;--accent:#00d4ff;--accent-glow:rgba(0,212,255,.15);--green:#00e676;--red:#ff3d57;--text:#e8edf3;--muted:#8a95a3;--dim:#4a5568;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;width:420px;box-shadow:0 40px 80px rgba(0,0,0,.5);position:relative;z-index:1;}
+.logo{text-align:center;margin-bottom:30px;}
+.logo-icon{width:62px;height:62px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px;box-shadow:0 0 30px var(--accent-glow);}
+.logo h1{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;}
+.logo p{font-size:13px;color:var(--muted);margin-top:4px;}
+.form-group{margin-bottom:16px;}
+label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s;}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+input::placeholder{color:var(--dim);}
+.btn{width:100%;padding:14px;background:var(--accent);color:#0a0c0f;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px;}
+.btn:hover{background:#33ddff;box-shadow:0 0 30px var(--accent-glow);}
+.flash{padding:12px 16px;border-radius:8px;margin-bottom:14px;font-size:13px;}
+.flash.error{background:rgba(255,61,87,.1);border:1px solid rgba(255,61,87,.4);color:#ff6b6b;}
+.flash.success{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.4);color:var(--green);}
+.hint{text-align:center;margin-top:14px;font-size:11px;color:var(--dim);}
+.demo{margin-top:20px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;}
+.demo-title{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:1px;margin-bottom:10px;}
+.demo-row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);}
+.demo-row:last-child{border:none;}
+.demo-row strong{font-family:'IBM Plex Mono',monospace;color:var(--text);}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🏛️</div>
+    <h1>Jamia Gate System</h1>
+    <p>Secure Entry · Exit · Authentication</p>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}
+  <div class="flash {{ cat }}">{{ msg }}</div>
+  {% endfor %}
+  {% endwith %}
+
+  <form method="POST">
+    <div class="form-group">
+      <label>User ID / Guard ID</label>
+      <input type="text" name="user_id" placeholder="e.g. ADMIN-001 or GRD-004" autofocus required>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" name="password" placeholder="Enter your password" required>
+    </div>
+    <button type="submit" class="btn">🔓 Login to System</button>
+  </form>
+
+  <p class="hint">🔒 All login attempts are recorded for security</p>
+
+  <div class="demo">
+    <div class="demo-title">DEMO ACCOUNTS — Password: Admin@123</div>
+    <div class="demo-row"><span>Super Admin</span><strong>ADMIN-001</strong></div>
+    <div class="demo-row"><span>Guard (Main Gate)</span><strong>GRD-004</strong></div>
+    <div class="demo-row"><span>Student (Active)</span><strong>STU-2021-001</strong></div>
+    <div class="demo-row"><span>Student (Inactive ✗)</span><strong>STU-2019-447</strong></div>
+  </div>
+</div>
+</body>
+</html>

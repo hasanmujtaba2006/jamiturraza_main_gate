@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Audit Log{% endblock %}
+{% block page_title %}Audit Log{% endblock %}
+{% block page_sub %}FULL ACCOUNTABILITY · WHO DID WHAT & WHEN{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+  <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;">
+    <input type="text" name="search" class="form-input" style="max-width:260px;" placeholder="🔍 Search actions..." value="{{ search_f }}">
+    <input type="date" name="date" class="form-input" style="width:160px;" value="{{ date_f }}">
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="{{ url_for('audit') }}" class="btn btn-ghost">Reset</a>
+  </form>
+</div>
+
+<div class="panel">
+  <div class="panel-hdr">
+    <span class="panel-title">Audit Trail</span>
+    <span class="pbadge info-b">{{ audit_list|length }} EVENTS</span>
+    <div class="panel-acts"><span style="font-size:11px;color:var(--muted);">Records are permanent and cannot be deleted</span></div>
+  </div>
+  {% if audit_list %}
+  <div style="padding:20px;">
+  {% set action_map = {'LOGIN':('→','green'),'LOGOUT':('←','blue'),'ENTRY_RECORDED':('✓','green'),'EXIT_RECORDED':('✓','blue'),'BLOCKED_ENTRY':('✗','red'),'MANUAL_ENTRY':('M','amber'),'MANUAL_EXIT':('M','amber'),'USER_CREATED':('★','amber'),'STATUS_CHANGED':('⟳','amber'),'ALERTS_MARKED_READ':('✓','green')} %}
+  {% for e in audit_list %}
+  {% set info = action_map.get(e.action, ('·','amber')) %}
+  {% set color = 'var(--green)' if info[1]=='green' else ('var(--accent)' if info[1]=='blue' else ('var(--red)' if info[1]=='red' else 'var(--amber)')) %}
+  {% set bg = 'var(--green-dim)' if info[1]=='green' else ('var(--accent-glow)' if info[1]=='blue' else ('var(--red-dim)' if info[1]=='red' else 'var(--amber-dim)')) %}
+  <div style="display:flex;gap:16px;padding-bottom:{{ '20' if not loop.last else '0' }}px;position:relative;">
+    {% if not loop.last %}<div style="position:absolute;left:12px;top:26px;bottom:0;width:1px;background:var(--border);"></div>{% endif %}
+    <div style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;z-index:1;background:{{ bg }};border:2px solid {{ color }};color:{{ color }};">{{ info[0] }}</div>
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:3px;">{{ e.action|replace('_',' ')|title }}</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;">{{ e.details or '—' }}</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);margin-top:5px;">
+        By: <span style="color:var(--accent)">{{ e.actor.full_name if e.actor else 'System' }}</span>
+        ({{ e.actor.user_id if e.actor else '—' }})
+        {% if e.target_id and target_users.get(e.target_id) %}
+        · Affected: {{ target_users[e.target_id].full_name }} ({{ target_users[e.target_id].user_id }})
+        {% endif %}
+        · {{ e.created_at.strftime('%d %b %Y, %I:%M:%S %p') }}
+        · IP: {{ e.ip_address }}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  </div>
+  {% else %}
+  <div style="padding:40px;text-align:center;color:var(--muted);">No audit events found.</div>
+  {% endif %}
+</div>
+{% endblock %}
